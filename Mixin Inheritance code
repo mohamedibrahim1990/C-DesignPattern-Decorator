@@ -1,0 +1,70 @@
+// Decorator.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
+
+#include <iostream>
+#include <string>
+#include <sstream>
+
+struct Shape {
+    virtual std::string str() const = 0;
+};
+
+
+struct Circle :Shape {
+    float radius;
+    Circle() = default;
+    explicit Circle(const float radius) : radius{ radius } {}
+    void resize(float factor) { radius *= factor; }
+    std::string str() const override {
+        std::ostringstream oss;
+        oss << "A Circle of radius" << radius;
+        return oss.str();
+    }
+}; //square implementation omitted
+
+struct Square :Shape {
+    float side;
+    Square() = default;
+    explicit Square(const float side) : side{ side } {}
+    void resize(float factor) { side *= factor; }
+    std::string str() const override {
+        std::ostringstream oss;
+        oss << "A Square of side" << side;
+        return oss.str();
+    }
+}; 
+
+template<typename T>
+struct ColoredShape : T {
+    static_assert(std::is_base_of<Shape, T>::value, "Template argument must be a shape");
+    std::string color;
+
+    ColoredShape(std::string color) :color{ color } {}
+    std::string str() const override {
+        std::ostringstream oss;
+        oss << T::str() << " has the color" << color;
+        return oss.str();
+    }
+};
+
+template<typename T>
+struct TransparentShape : T {
+    static_assert(std::is_base_of<Shape, T>::value, "Template argument must be a shape");
+    uint32_t transparency{};
+
+    TransparentShape() = default;
+    TransparentShape(uint32_t transparency) :transparency{ transparency } {}
+    std::string str() const override {
+        std::ostringstream oss;
+        oss << T::str() << " has the transperncy of" << transparency;
+        return oss.str();
+    }
+};
+
+int main() {
+    ColoredShape<TransparentShape<Square>> square{ "blue" };
+    square.side = 2;
+    square.transparency = 20;
+    std::cout << square.str() << std::endl;
+    square.resize(3);
+}
